@@ -15,7 +15,7 @@ class ObjectDetection:
         print(f"Device used: {self.device}")
 
         self.model = self.load_model()
-        self.CLASS_NAMES_DICT = self.model.model.names
+        self.CLASS_NAMES_DICT = self.model.model.names 
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
@@ -23,6 +23,7 @@ class ObjectDetection:
         model.fuse()
         return model
     def predict(self, frame):
+        print(self.model(frame))
         return self.model(frame)
     
     def plot_boxes(self, results, frame):
@@ -31,6 +32,7 @@ class ObjectDetection:
         class_ids = []
 
         for result in results[0]:
+
             class_id = result.boxes.cls.cpu().numpy().astype(int)
             if class_id == 0:
                 # get the coordinate
@@ -48,11 +50,9 @@ class ObjectDetection:
         )
         for bbox, confidence, class_id in zip(detections.xyxy, detections.confidence, detections.class_id):
             self.labels = [f"{self.CLASS_NAMES_DICT[class_id]}"]
-            print(bbox, self.labels, confidence)
             
             #crappu code by the way
             x1, y1, x2, y2 = bbox[0], bbox[1], bbox[2], bbox[3]
-            print(x1, y1, x2, y2)
             
             # print(x1, y1, x2, y2)
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 255), 2)
@@ -92,7 +92,7 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-detector = ObjectDetection(capture_index=0)()
+detector = ObjectDetection(capture_index=0)
 detector()
 
 
