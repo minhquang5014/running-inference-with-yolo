@@ -24,6 +24,7 @@ class ObjectDetection:
         model = YOLO("yolov10s.pt")
         model.fuse()
         return model
+        
     def predict(self, frame):
         return self.model(frame)
     
