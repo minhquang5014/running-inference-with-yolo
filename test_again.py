@@ -23,7 +23,6 @@ class ObjectDetection:
         model.fuse()
         return model
     def predict(self, frame):
-        print(self.model(frame))
         return self.model(frame)
     
     def plot_boxes(self, results, frame):
@@ -92,7 +91,6 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-detector = ObjectDetection(capture_index=0)
+detector = ObjectDetection("C:/Users/acer/Downloads/traffic_video.mp4")
 detector()
-
 
