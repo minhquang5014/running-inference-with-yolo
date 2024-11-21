@@ -45,7 +45,7 @@ class ObjectDetection:
         detections = Detections(
                 xyxy=results[0].boxes.xyxy.cpu().numpy(),
                 confidence=results[0].boxes.conf.cpu().numpy(),
-                class_id=results[0].boxes.cls.cpu().numpy().astype(int),
+                class_id=results[0].boxes.cls.cpu().numpy().astype(int)
         )
         for bbox, confidence, class_id in zip(detections.xyxy, detections.confidence, detections.class_id):
             self.labels = [f"{self.CLASS_NAMES_DICT[class_id]}"]
@@ -91,6 +91,5 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-detector = ObjectDetection("C:/Users/acer/Downloads/traffic_video.mp4")
+detector = ObjectDetection(capture_index=0)
 detector()
-
