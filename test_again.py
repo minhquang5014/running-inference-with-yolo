@@ -91,5 +91,7 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-detector = ObjectDetection(capture_index=0)
+# detector = ObjectDetection(capture_index=0)
+detector = ObjectDetection("C:/Users/acer/Downloads/traffic_video.mp4")
+
 detector()

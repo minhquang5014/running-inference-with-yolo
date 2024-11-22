@@ -4,7 +4,7 @@ import cv2
 from time import time
 from ultralytics import YOLO
 import pafy
-
+import mediapipe as mp
 from supervision.draw.color import ColorPalette, Color
 from supervision import Detections, BoxAnnotator
 
@@ -24,7 +24,7 @@ class ObjectDetection:
         model = YOLO("yolov10s.pt")
         model.fuse()
         return model
-        
+
     def predict(self, frame):
         return self.model(frame)
     
@@ -69,8 +69,8 @@ class ObjectDetection:
         assert cap.isOpened()
 
         # set the resolution for the frame
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         while True:
             start_time = time()
