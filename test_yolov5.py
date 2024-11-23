@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import cv2
 import time
-from ultralytics import YOLO
 
 class ObjectDetection:
     def __init__(self):
@@ -14,13 +13,8 @@ class ObjectDetection:
         print(f"device used: {self.device}")
 
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5','yolov5s', pretrained=True)
+        model = torch.hub.load('ultralytics/yolov5','yolov5n', pretrained=True)
         return model
-
-        # model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n model
-        # model.fuse()
-    
-        # return model
     def score_frame(self, frame):
         self.model.to(self.device)
         frame = [frame]
@@ -41,6 +35,7 @@ class ObjectDetection:
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 2)
                 cv2.putText(frame, self.class_to_label(labels[i]), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, bgr, 2)
         return frame
+    
     def __call__(self):
         cap = cv2.VideoCapture(0)
 
