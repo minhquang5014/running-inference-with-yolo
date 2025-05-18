@@ -19,7 +19,7 @@ class ObjectDetection:
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
-        model = YOLO("yolov10s.pt")
+        model = YOLO("best2.pt")
         model.fuse()
         return model
     def predict(self, frame):
@@ -92,6 +92,6 @@ class ObjectDetection:
         cv2.destroyAllWindows()
         
 # detector = ObjectDetection(capture_index=0)
-detector = ObjectDetection("C:/Users/acer/Downloads/traffic_video.mp4")
+detector = ObjectDetection("video/video_07332025_11h33m31s.avi")
 
 detector()
