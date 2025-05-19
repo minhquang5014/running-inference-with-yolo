@@ -1,0 +1,16 @@
+description: Ultralytics best2 model trained on /content/detect-NG-vs-good-products-6/data.yaml
+author: Ultralytics
+date: '2025-05-19T08:54:21.884838'
+version: 8.3.34
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: NG
+  1: black
+  2: white

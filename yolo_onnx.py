@@ -7,7 +7,7 @@ onnx_path = "best.onnx"  # Path to your exported YOLO ONNX model
 class_names = ['NG', 'black', 'white']  # Replace with your classes
 
 # Image input size used during training/export
-input_width, input_height = 640, 480
+input_width, input_height = 640, 640
 
 # Confidence threshold and NMS threshold
 conf_threshold = 0.4
@@ -68,7 +68,7 @@ while cap.isOpened():
 
     for box, class_id, score in detections:
         x, y, w, h = box
-        label = f"{class_names[class_id]}: {score:.2f}"
+        label = f"{class_names[class_id]}: {score:.2f}" if 0 <= class_id < len(class_names) else print(f"Invalid class id: {class_id}")
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.putText(frame, label, (x, y - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
