@@ -4,7 +4,7 @@ import cv2
 import time
 import yaml
 # === Config ===
-ONNX_MODEL_PATH = "best.onnx"
+ONNX_MODEL_PATH = "custom_train_yolov10s.onnx"
 CLASSES = ['NG', 'black', 'White']
 
 INPUT_SIZE = (640, 640)
