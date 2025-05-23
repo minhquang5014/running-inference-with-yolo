@@ -10,6 +10,12 @@ colors=[Color(r=255, g=64, b=64), Color(r=255, g=161, b=160)]
 
 class ObjectDetection:
     def __init__(self, capture_index):
+        self.lower_red = np.array([0, 100, 100])
+        self.upper_red = np.array([12, 255, 255])
+        self.lower_green = np.array([30, 100, 100])
+        self.upper_green = np.array([92, 255, 255])
+        self.lower_blue = np.array([95, 120, 120])
+        self.upper_blue = np.array([120, 255, 255])
         self.capture_index = capture_index
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print(f"Device used: {self.device}")
@@ -19,7 +25,7 @@ class ObjectDetection:
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
-        model = YOLO("custom_train_yolov10s.pt")
+        model = YOLO("custom_train_yolov10s_2.pt")
         model.fuse()
         return model
 
@@ -39,9 +45,9 @@ class ObjectDetection:
             xyxys.append(xyxy)
             confidence.append(conf)
             class_ids.append(class_id)
-
+        boxes_out = []
         for bbox, conf, class_id in zip(xyxys, confidence, class_ids):
-            x1, y1, x2, y2 = bbox
+            x1, y1, x2, y2 = bbox.astype(int)
             label = self.CLASS_NAMES_DICT.get(class_id, str(class_id))
 
             # Draw rectangle
@@ -50,8 +56,8 @@ class ObjectDetection:
             # Draw label with confidence
             cv2.putText(frame, f"{label}, conf: {conf:.2f}", (int(x1), int(y1) - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-
-        return frame
+            boxes_out.append((x1, y1, x2, y2))
+        return frame, boxes_out
 
     def __call__(self):
         cap = cv2.VideoCapture(self.capture_index)
@@ -68,13 +74,52 @@ class ObjectDetection:
             if not ret:
                 break
             results = self.model(frame)
-            frame = self.plot_boxes(results, frame)
+
+            # return the frame and the 4 coordinates
+            frame, boxes = self.plot_boxes(results, frame)
+
+            # take the region inside the 4 coordinates as ROI
+            # extract the ROI by cutting the frame
+            for x1, y1, x2, y2 in boxes:
+                ROI = frame[y1:y2, x1:x2]
+
+                # convert the ROI to HSV color format
+                hsv_roi = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
+
+                masked_red = cv2.inRange(hsv_roi, self.lower_red, self.upper_red)
+                masked_blue = cv2.inRange(hsv_roi, self.lower_blue, self.upper_blue)
+                masked_green = cv2.inRange(hsv_roi, self.lower_green, self.upper_green)
+
+                # contours, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # for contour in contours:
+                #     if cv2.contourArea(contour) > 3000:
+                #         x, y, w, h = cv2.boundingRect(contour)
+                #         cv2.rectangle(frame, (x, y), (x + w, y + h), (76, 153, 0), 3)  # Draw rectangle
+                #         cv2.putText(frame, "red", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+                # Check dominant color
+                red_pixels = np.sum(masked_red > 0)
+                blue_pixels = np.sum(masked_blue > 0)
+                green_pixels = np.sum(masked_green > 0)
+
+                max_color = max(red_pixels, green_pixels, blue_pixels)
+                if max_color == red_pixels:
+                    detected_color = "red"
+                elif max_color == green_pixels:
+                    detected_color = "green"
+                elif max_color == blue_pixels:
+                    detected_color = "blue"
+                else:
+                    detected_color = None
+
+                cv2.putText(frame, f'{detected_color}', (x1, y1 - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+
             end_time = time()
             if end_time - start_time != 0:
                 fps = 1/np.round(end_time - start_time, 2)
             # print(fps)
             cv2.putText(frame, f'FPS: {int(fps)}', (20,70), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
-            
+
             cv2.imshow('YOLOv8 Detection', frame)
  
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -83,7 +128,7 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-# detector = ObjectDetection(capture_index=0)
-detector = ObjectDetection("video/1.avi")
+detector = ObjectDetection(capture_index=0)
+# detector = ObjectDetection("video/1.avi")
 
 detector()
