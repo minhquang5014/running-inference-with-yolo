@@ -16,6 +16,7 @@ class ObjectDetection:
         self.upper_green = np.array([92, 255, 255])
         self.lower_blue = np.array([95, 120, 120])
         self.upper_blue = np.array([120, 255, 255])
+
         self.capture_index = capture_index
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print(f"Device used: {self.device}")
@@ -90,7 +91,14 @@ class ObjectDetection:
                 masked_blue = cv2.inRange(hsv_roi, self.lower_blue, self.upper_blue)
                 masked_green = cv2.inRange(hsv_roi, self.lower_green, self.upper_green)
 
-                # contours, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours_red, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                print(contours_red)
+                contours_blue, _ = cv2.findContours(masked_blue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                print(contours_blue)
+                contours_green, _ = cv2.findContours(masked_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                print(contours_green)
+                
+
                 # for contour in contours:
                 #     if cv2.contourArea(contour) > 3000:
                 #         x, y, w, h = cv2.boundingRect(contour)
@@ -98,19 +106,19 @@ class ObjectDetection:
                 #         cv2.putText(frame, "red", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
                 # Check dominant color
-                red_pixels = np.sum(masked_red > 0)
-                blue_pixels = np.sum(masked_blue > 0)
-                green_pixels = np.sum(masked_green > 0)
+                # red_pixels = np.sum(masked_red > 0)
+                # blue_pixels = np.sum(masked_blue > 0)
+                # green_pixels = np.sum(masked_green > 0)
 
-                max_color = max(red_pixels, green_pixels, blue_pixels)
-                if max_color == red_pixels:
-                    detected_color = "red"
-                elif max_color == green_pixels:
-                    detected_color = "green"
-                elif max_color == blue_pixels:
-                    detected_color = "blue"
-                else:
-                    detected_color = None
+                # max_color = max(red_pixels, green_pixels, blue_pixels)
+                # if max_color == red_pixels:
+                #     detected_color = "red"
+                # elif max_color == green_pixels:
+                #     detected_color = "green"
+                # elif max_color == blue_pixels:
+                #     detected_color = "blue"
+                # else:
+                #     detected_color = None
 
                 cv2.putText(frame, f'{detected_color}', (x1, y1 - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
 
