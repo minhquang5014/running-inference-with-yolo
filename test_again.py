@@ -26,7 +26,7 @@ class ObjectDetection:
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
-        model = YOLO("custom_train_yolov10s_2.pt")
+        model = YOLO("custom_train_yolov8n.pt")
         model.fuse()
         return model
 
@@ -57,7 +57,7 @@ class ObjectDetection:
             # Draw label with confidence
             cv2.putText(frame, f"{label}, conf: {conf:.2f}", (int(x1), int(y1) - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-            boxes_out.append((x1, y1, x2, y2))
+            boxes_out.append(((x1, y1, x2, y2), class_id))
         return frame, boxes_out
 
     def __call__(self):
@@ -81,29 +81,41 @@ class ObjectDetection:
 
             # take the region inside the 4 coordinates as ROI
             # extract the ROI by cutting the frame
-            for x1, y1, x2, y2 in boxes:
-                ROI = frame[y1:y2, x1:x2]
+            if len(boxes) != 0:
+                for (x1, y1, x2, y2), class_id in boxes:
+                    if class_id == 0:
+                        continue
+                    w1 = x2 - x1
+                    h1 = y2 - y1
+                    ROI = frame[y1:y2, x1:x2]
 
-                # convert the ROI to HSV color format
-                hsv_roi = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
+                    # convert the ROI to HSV color format
+                    hsv_roi = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
 
-                masked_red = cv2.inRange(hsv_roi, self.lower_red, self.upper_red)
-                masked_blue = cv2.inRange(hsv_roi, self.lower_blue, self.upper_blue)
-                masked_green = cv2.inRange(hsv_roi, self.lower_green, self.upper_green)
+                    masked_red = cv2.inRange(hsv_roi, self.lower_red, self.upper_red)
+                    masked_blue = cv2.inRange(hsv_roi, self.lower_blue, self.upper_blue)
+                    masked_green = cv2.inRange(hsv_roi, self.lower_green, self.upper_green)
 
-                contours_red, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                print(contours_red)
-                contours_blue, _ = cv2.findContours(masked_blue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                print(contours_blue)
-                contours_green, _ = cv2.findContours(masked_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                print(contours_green)
-                
-
-                # for contour in contours:
-                #     if cv2.contourArea(contour) > 3000:
-                #         x, y, w, h = cv2.boundingRect(contour)
-                #         cv2.rectangle(frame, (x, y), (x + w, y + h), (76, 153, 0), 3)  # Draw rectangle
-                #         cv2.putText(frame, "red", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    contours_red, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    contours_blue, _ = cv2.findContours(masked_blue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    contours_green, _ = cv2.findContours(masked_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    
+                    for contour in contours_red:
+                        if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                            x, y, w, h = cv2.boundingRect(contour)
+                            cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                            cv2.putText(frame, "red", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                    
+                    for contour in contours_blue:
+                        if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                            x, y, w, h = cv2.boundingRect(contour)
+                            cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                            cv2.putText(frame, "blue", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    for contour in contours_green:
+                        if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                            x, y, w, h = cv2.boundingRect(contour)
+                            cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                            cv2.putText(frame, "green", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
                 # Check dominant color
                 # red_pixels = np.sum(masked_red > 0)
@@ -120,7 +132,7 @@ class ObjectDetection:
                 # else:
                 #     detected_color = None
 
-                cv2.putText(frame, f'{detected_color}', (x1, y1 - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+                # cv2.putText(frame, f'{detected_color}', (x1, y1 - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
 
             end_time = time()
             if end_time - start_time != 0:
@@ -136,7 +148,7 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
         
-detector = ObjectDetection(capture_index=0)
-# detector = ObjectDetection("video/1.avi")
+# detector = ObjectDetection(capture_index=0)
+detector = ObjectDetection("3.avi")
 
 detector()
