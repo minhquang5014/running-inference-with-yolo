@@ -19,6 +19,7 @@ class ObjectDetection:
 
         self.capture_index = capture_index
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # self.device = "cpu"
         print(f"Device used: {self.device}")
 
         self.model = self.load_model()
@@ -26,7 +27,7 @@ class ObjectDetection:
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
-        model = YOLO("custom_train_yolov8n.pt")
+        model = YOLO("custom_train_yolov10s_2.pt")
         model.fuse()
         return model
 
@@ -60,7 +61,7 @@ class ObjectDetection:
             boxes_out.append(((x1, y1, x2, y2), class_id))
         return frame, boxes_out
 
-    def __call__(self):
+    def video(self):
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
 
@@ -147,8 +148,59 @@ class ObjectDetection:
         
         cap.release()
         cv2.destroyAllWindows()
-        
-# detector = ObjectDetection(capture_index=0)
-detector = ObjectDetection("3.avi")
 
-detector()
+    def image(self, image):
+        img = cv2.imread(image)
+        img = cv2.resize(img, (640, 480))
+        results = self.model(img)
+
+        # return the frame and the 4 coordinates
+        frame, boxes = self.plot_boxes(results, img)
+
+        # take the region inside the 4 coordinates as ROI
+        # extract the ROI by cutting the frame
+        if len(boxes) != 0:
+            for (x1, y1, x2, y2), class_id in boxes:
+                if class_id == 0:
+                    continue
+                w1 = x2 - x1
+                h1 = y2 - y1
+                ROI = frame[y1:y2, x1:x2]
+
+                # convert the ROI to HSV color format
+                hsv_roi = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
+
+                masked_red = cv2.inRange(hsv_roi, self.lower_red, self.upper_red)
+                masked_blue = cv2.inRange(hsv_roi, self.lower_blue, self.upper_blue)
+                masked_green = cv2.inRange(hsv_roi, self.lower_green, self.upper_green)
+
+                contours_red, _ = cv2.findContours(masked_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours_blue, _ = cv2.findContours(masked_blue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours_green, _ = cv2.findContours(masked_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                
+                detection_lst = []
+                for contour in contours_red:
+                    if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                        x, y, w, h = cv2.boundingRect(contour)
+                        cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                        cv2.putText(frame, "red", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                
+                for contour in contours_blue:
+                    if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                        x, y, w, h = cv2.boundingRect(contour)
+                        cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                        cv2.putText(frame, "blue", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                for contour in contours_green:
+                    if cv2.contourArea(contour) > 1/4 * w1 * h1:
+                        x, y, w, h = cv2.boundingRect(contour)
+                        cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
+                        cv2.putText(frame, "green", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+
+        cv2.imshow("Yolov8 Detection", img)
+        cv2.waitKey(0)
+
+# detector = ObjectDetection(capture_index=0)
+detector = ObjectDetection("video/3.avi")
+detector.video()
+# detector.image("images/11.jpg")
