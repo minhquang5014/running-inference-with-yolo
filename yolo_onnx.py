@@ -5,8 +5,8 @@ import numpy as np
 from time import time
 
 # === Config ===
-ONNX_MODEL_PATH = "custom_train_yolov10s.onnx"
-CLASSES = ['NG', 'black', 'white']
+ONNX_MODEL_PATH = "custom_train_yolov10s_2.onnx"
+CLASSES = ['NG', 'black','object', 'white']
 INPUT_SIZE = (640, 640)
 CONF_THRESH = 0.5
 

@@ -15,7 +15,7 @@ class ObjectDetection:
         self.lower_green = np.array([30, 100, 100])
         self.upper_green = np.array([92, 255, 255])
         self.lower_blue = np.array([95, 120, 120])
-        self.upper_blue = np.array([120, 255, 255])
+        self.upper_blue = np.array([130, 255, 255])
 
         self.capture_index = capture_index
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -32,7 +32,7 @@ class ObjectDetection:
         return model
 
     def plot_boxes(self, results, frame, conf_threshold = 0.6):
-        xyxys =[]
+        xyxys = []
         confidence = []
         class_ids = []
 
@@ -79,13 +79,14 @@ class ObjectDetection:
 
             # return the frame and the 4 coordinates
             frame, boxes = self.plot_boxes(results, frame)
+            print(boxes)
 
             # take the region inside the 4 coordinates as ROI
             # extract the ROI by cutting the frame
             if len(boxes) != 0:
                 for (x1, y1, x2, y2), class_id in boxes:
-                    if class_id == 0:
-                        continue
+                    # if class_id == 0:
+                    #     continue
                     w1 = x2 - x1
                     h1 = y2 - y1
                     ROI = frame[y1:y2, x1:x2]
@@ -161,8 +162,8 @@ class ObjectDetection:
         # extract the ROI by cutting the frame
         if len(boxes) != 0:
             for (x1, y1, x2, y2), class_id in boxes:
-                if class_id == 0:
-                    continue
+                # if class_id == 0:
+                #     continue
                 w1 = x2 - x1
                 h1 = y2 - y1
                 ROI = frame[y1:y2, x1:x2]
@@ -198,9 +199,10 @@ class ObjectDetection:
 
 
         cv2.imshow("Yolov8 Detection", img)
+        cv2.imshow("HSV color", hsv_roi)
         cv2.waitKey(0)
 
 # detector = ObjectDetection(capture_index=0)
 detector = ObjectDetection("video/3.avi")
-detector.video()
-# detector.image("images/11.jpg")
+# detector.video()
+detector.image("images/11.jpg")
