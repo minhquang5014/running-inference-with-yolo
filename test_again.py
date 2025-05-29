@@ -204,5 +204,5 @@ class ObjectDetection:
 
 # detector = ObjectDetection(capture_index=0)
 detector = ObjectDetection("video/3.avi")
-# detector.video()
-detector.image("images/11.jpg")
+detector.video()
+# detector.image("images/11.jpg")

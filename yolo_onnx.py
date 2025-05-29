@@ -1,5 +1,4 @@
 import onnxruntime as ort
-print(ort.get_available_providers())
 import cv2
 import numpy as np
 from time import time
@@ -36,19 +35,20 @@ def preprocess(image):
 
 # === ONNX Runtime Setup ===
 session_options = ort.SessionOptions()
+session_options.log_severity_level = 1
 session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
 session = ort.InferenceSession(
     ONNX_MODEL_PATH,
     sess_options=session_options,
-    providers=['CUDAExecutionProvider', 'AzureExecutionProvider', 'CPUExecutionProvider']
+    providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
 )
 
 input_name = session.get_inputs()[0].name
 
 # === Inference ===
 def run_video():
-    cap = cv2.VideoCapture("video/1.avi")
+    cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
         ret, frame = cap.read()
