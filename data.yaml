@@ -1,13 +1,15 @@
+names:
+- NG
+- black
+- object
+- white
+nc: 4
+roboflow:
+  license: CC BY 4.0
+  project: detect-ng-vs-good-products
+  url: https://universe.roboflow.com/quang-w1gnb/detect-ng-vs-good-products/dataset/20
+  version: 20
+  workspace: quang-w1gnb
+test: ../test/images
 train: ../train/images
 val: ../valid/images
-test: ../test/images
-
-nc: 3
-names: ['NG', 'black', 'white']
-
-roboflow:
-  workspace: quang-w1gnb
-  project: detect-ng-vs-good-products
-  version: 8
-  license: CC BY 4.0
-  url: https://universe.roboflow.com/quang-w1gnb/detect-ng-vs-good-products/dataset/8

@@ -27,7 +27,7 @@ class ObjectDetection:
         self.box_annotator = BoxAnnotator(color=ColorPalette(colors=colors), thickness=3)
         
     def load_model(self):
-        model = YOLO("custom_train_yolov10s_2.pt")
+        model = YOLO("model/custom_train_yolov10s_3.pt")
         model.fuse()
         return model
 
@@ -85,8 +85,8 @@ class ObjectDetection:
             # extract the ROI by cutting the frame
             if len(boxes) != 0:
                 for (x1, y1, x2, y2), class_id in boxes:
-                    # if class_id == 0:
-                    #     continue
+                    if class_id == 0:
+                        continue
                     w1 = x2 - x1
                     h1 = y2 - y1
                     ROI = frame[y1:y2, x1:x2]
@@ -107,7 +107,6 @@ class ObjectDetection:
                             x, y, w, h = cv2.boundingRect(contour)
                             cv2.rectangle(frame, (x + x1, y + y1), (x + x1 + w, y + y1 + h), (76, 153, 0), 3)  # Draw rectangle
                             cv2.putText(frame, "red", (x + x1, y + y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                    
                     for contour in contours_blue:
                         if cv2.contourArea(contour) > 1/4 * w1 * h1:
                             x, y, w, h = cv2.boundingRect(contour)
@@ -202,7 +201,7 @@ class ObjectDetection:
         cv2.imshow("HSV color", hsv_roi)
         cv2.waitKey(0)
 
-# detector = ObjectDetection(capture_index=0)
-detector = ObjectDetection("video/3.avi")
+detector = ObjectDetection(capture_index=0)
+# detector = ObjectDetection("video/3.avi")
 detector.video()
 # detector.image("images/11.jpg")

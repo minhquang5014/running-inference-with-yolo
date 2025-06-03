@@ -6,7 +6,16 @@ import pathlib
 from ultralytics import YOLO
 
 import modules.utils as utils
-from modules.autobackend import AutoBackend
+# from modules.autobackend import AutoBackend
+
+import yaml
+
+CONF_THRESHOLD = 0.6
+
+def load_class_names_from_yaml(yaml_path):
+    with open(yaml_path, 'r') as f:
+        data = yaml.safe_load(f)
+    return data['names']
 
 def get_detection_result(model, frame):
     # Update object localizer
@@ -90,12 +99,13 @@ def detection(model_path, source, name):
 
     print("Video is saved in: "+save_path)
 
-def detection_webcam(model_path):
+def detection_webcam(capture_index, model_path, yaml_path):
     model = YOLO(model_path)
-    label_map = model.names
+    print(model)
+    label_map = load_class_names_from_yaml(yaml_path)
     COLORS = [[random.randint(0, 255) for _ in range(3)] for _ in label_map]
 
-    cap = cv2.VideoCapture(0)  # 0 = default webcam
+    cap = cv2.VideoCapture(capture_index)  # 0 = default webcam
 
     frame_count = 0
     total_fps = 0
@@ -104,14 +114,24 @@ def detection_webcam(model_path):
         ret, frame = cap.read()
         if not ret:
             break
-
+        frame = cv2.flip(frame, 1)
         start = time.time()
         cls, conf, box = get_detection_result(model, frame)
-        detection_output = list(zip(cls, conf, box))
+        class_ids = []
+        confidence = []
+        xyxys = []
+        for class_id, conf, xyxy in zip(cls, conf, box):
+            if conf < CONF_THRESHOLD:
+                continue
+            xyxys.append(xyxy)
+            confidence.append(conf)
+            class_ids.append(class_id)
+        detection_output = list(zip(class_ids, confidence, xyxys))
         image_output = utils.draw_box(frame, detection_output, label_map, COLORS)
 
         end = time.time()
-        fps = 1 / (end - start)
+        if (end - start) != 0:
+            fps = 1 / (end - start)
         total_fps += fps
         frame_count += 1
         avg_fps = total_fps / frame_count
@@ -127,4 +147,4 @@ def detection_webcam(model_path):
     cv2.destroyAllWindows()
 
 
-detection_webcam()
+detection_webcam(0, "model/custom_train_yolov10s_3.engine", "data.yaml")
